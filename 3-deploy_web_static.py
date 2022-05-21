@@ -11,10 +11,11 @@ Fabric script methods:
 Usage:
     fab -f 3-deploy_web_static.py deploy -i my_ssh_private_key -u ubuntu
 """
-
+import os
 import os.path
 from datetime import datetime
-from fabric.api import env, put, run, local
+from fabric.api import *
+from fabric.operations import env, put, run, local
 
 env.hosts = ['3.80.58.133', '34.148.138.30']
 created_path = None
@@ -27,8 +28,8 @@ def do_pack():
     time = datetime.utcnow().strftime('%Y%m%d%H%M%S')
     file_name = "versions/web_static_{}.tgz".format(time)
     try:
-        local("sudo mkdir -p ./versions")
-        local("sudo tar --create --verbose -z --file={} ./web_static"
+        local("mkdir -p ./versions")
+        local("tar --create --verbose -z --file={} ./web_static"
               .format(file_name))
         return file_name
     except IOError:
