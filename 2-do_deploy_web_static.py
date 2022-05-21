@@ -12,8 +12,9 @@ Usage:
     -i my_ssh_private_key -u ubuntu
 """
 
-import os.path
-from fabric.api import env, put, run
+import os
+from fabric.api import *
+from fabric.operations import run, put, sudo
 
 env.hosts = ['3.80.58.133', '34.148.138.30']
 
@@ -24,31 +25,22 @@ def do_deploy(archive_path):
     """
     if os.path.isfile(archive_path) is False:
         return False
-    file = archive_path.split("/")[-1]
-    name = file.split(".")[0]
-
-    if put(archive_path, "/tmp/{}".format(file)).failed is True:
+    try:
+        archive = archive_path.split("/")[-1]
+        path = "/data/web_static/releases"
+        put("{}".format(archive_path), "/tmp/{}".format(archive))
+        folder = archive.split(".")
+        run("mkdir -p {}/{}/".format(path, folder[0]))
+        new_archive = '.'.join(folder)
+        run("tar -xzf /tmp/{} -C {}/{}/"
+            .format(new_archive, path, folder[0]))
+        run("rm /tmp/{}".format(archive))
+        run("mv {}/{}/web_static/* {}/{}/"
+            .format(path, folder[0], path, folder[0]))
+        run("rm -rf {}/{}/web_static".format(path, folder[0]))
+        run("rm -rf /data/web_static/current")
+        run("ln -sf {}/{} /data/web_static/current"
+            .format(path, folder[0]))
+        return True
+    except IOError:
         return False
-    if run("sudo rm -rf /data/web_static/releases/{}/".
-           format(name)).failed is True:
-        return False
-    if run("sudo mkdir -p /data/web_static/releases/{}/".
-           format(name)).failed is True:
-        return False
-    if run("sudo tar -xzf /tmp/{} -C /data/web_static/releases/{}/".
-           format(file, name)).failed is True:
-        return False
-    if run("sudo rm /tmp/{}".format(file)).failed is True:
-        return False
-    if run("sudo mv /data/web_static/releases/{}/web_static/* "
-           "/data/web_static/releases/{}/".format(name, name)).failed is True:
-        return False
-    if run("sudo rm -rf /data/web_static/releases/{}/web_static".
-           format(name)).failed is True:
-        return False
-    if run("sudo rm -rf /data/web_static/current").failed is True:
-        return False
-    if run("sudo ln -s /data/web_static/releases/{}/ /data/web_static/current".
-           format(name)).failed is True:
-        return False
-    return True
