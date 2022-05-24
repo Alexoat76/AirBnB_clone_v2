@@ -12,7 +12,6 @@ Usage:
     -i my_ssh_private_key -u ubuntu
 """
 
-import os
 from fabric.api import *
 from fabric.operations import run, put, sudo
 
@@ -23,24 +22,22 @@ def do_deploy(archive_path):
     """
     Distributes an archive to a web server.
     """
-    if os.path.isfile(archive_path) is False:
+    from os.path import exists
+
+    if not exists(archive_path):
         return False
-    try:
-        archive = archive_path.split("/")[-1]
-        path = "/data/web_static/releases"
-        put("{}".format(archive_path), "/tmp/{}".format(archive))
-        folder = archive.split(".")
-        run("mkdir -p {}/{}/".format(path, folder[0]))
-        new_archive = '.'.join(folder)
-        run("tar -xzf /tmp/{} -C {}/{}/"
-            .format(new_archive, path, folder[0]))
-        run("rm /tmp/{}".format(archive))
-        run("mv {}/{}/web_static/* {}/{}/"
-            .format(path, folder[0], path, folder[0]))
-        run("rm -rf {}/{}/web_static".format(path, folder[0]))
-        run("rm -rf /data/web_static/current")
-        run("ln -sf {}/{} /data/web_static/current"
-            .format(path, folder[0]))
-        return True
-    except IOError:
-        return False
+
+    put(archive_path, "/tmp/")
+    filename = archive_path.split('/')[1]
+    run("mkdir -p /data/web_static/releases/{}".format(filename[0:-4]))
+    run("tar -xzf {} -C {}".format("/tmp/" + filename,
+        "/data/web_static/releases/" + filename[0:-4]))
+    run("mv /data/web_static/releases/{}/web_static/*\
+        /data/web_static/releases/{}".format(filename[0:-4], filename[0:-4]))
+    run("rm -rf /data/web_static/releases/{}/web_static")
+    run("rm -f /tmp/{}".format(filename))
+    run("rm /data/web_static/current")
+    run('ln -sf /data/web_static/releases/{}\
+        /data/web_static/current'.format(filename[0:-4]))
+    sudo('service nginx restart')
+    return True
