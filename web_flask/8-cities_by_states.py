@@ -6,7 +6,7 @@
 """"
 Script starts Flask web app
     listen on 0.0.0.0, port 5000
-    routes: /:  
+    routes: /:
             /cities_by_states:    Display HTML and state, city relations
 """
 
