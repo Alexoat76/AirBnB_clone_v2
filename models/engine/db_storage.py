@@ -85,6 +85,7 @@ class DBStorage:
         )
         self.__session = scoped_session(SessionFactory)()
 
+
     def close(self):
         """Closes the storage engine."""
         self.__session.close()
