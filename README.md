@@ -6,7 +6,7 @@
 
 ---
 	
-# 0x00. AirBnB clone - The console
+# 0x02. AirBnB clone - MySQL
 <div style="text-align: justify">
 
 Thank you for visiting this repository which contain the `second step` towards building first `full web application`: the `AirBnB clone_v2`. This work starts by forking the following source: **[codebase](https://github.com/justinmajetich/AirBnB_clone.git)**
